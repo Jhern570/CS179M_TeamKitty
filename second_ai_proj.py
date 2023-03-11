@@ -4,6 +4,7 @@ import os
 import Bay
 import time
 from search import *
+import logging
 
 root = Tk()
 root.title("TeamKitty AI Project")
@@ -25,6 +26,8 @@ jobs = ["Load", "Unload", "Balance Ship"]
 jobs_click = StringVar()
 jobs_click.set("Select Job")
 
+#USER STACK: keeps track of who is logged in
+user = []
 
 def select_container_click(event):
      label_info = event.widget.grid_info()
@@ -100,6 +103,21 @@ def next_move_click():
           job_submit_button.config(state='normal')
           select_txt_file_button.config(state=NORMAL)
 
+def log(case):
+     if case == 1:
+          # user is logging in
+          if user and len(str(username_entry.get())):
+               print(f"{user.pop()} has logged out.")
+          if not user and len(str(username_entry.get())):
+               print(f"{username_entry.get()} has logged in.")
+               user.append(username_entry.get()) 
+     elif case == 2:
+          # user is logging a comment
+          if len(str(log_text_box.get("1.0", "end-1c"))):
+               print(log_text_box.get("1.0", "end-1c"))
+     elif case == 3:
+          # atomic movement is logged
+          print("logging move") 
 
 select_txt_file_button = Button(root, text="Select Manifest", padx=8, pady=12, command=select_txt_file_click)
 select_txt_file_button.place(x=width-int(width/6), y=height-int(height/5))
@@ -116,4 +134,19 @@ job_submit_button.place(x=width-int(width/6), y=240)
 next_move_button = Button(root, text="Next Move", command=next_move_click)
 next_move_button.config(state="disabled")
 next_move_button.place(x=int(width/2), y=height - 200)
+
+# BUTTONS FOR LOGGING INFORMATION
+username_label = Label(root, text="Name:")
+username_entry = Entry(root)
+login_button = Button(root, text="Login", command=lambda: log(1))
+log_button = Button(root, text="Post Log", command=lambda: log(2))
+log_text_box = Text(root, width=25, height=5)
+text_label = Label(root, text = "Log")
+
+username_label.grid(row=2,column=0, pady=10)
+username_entry.grid(row=2,column=1, pady=10)
+login_button.grid(row=3,column=0, columnspan=1, pady=10)
+log_button.grid(row=3,column=1, columnspan=2, padx=25 ,pady=10)
+text_label.grid(row=0, column=0, columnspan=2, padx=20)
+log_text_box.grid(row=1,column=0, columnspan=2, padx=20)
 root.mainloop()
