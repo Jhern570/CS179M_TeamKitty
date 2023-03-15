@@ -1,4 +1,4 @@
-
+import logging
 class Bay:
     def __init__(self):
         self.container_cells = []

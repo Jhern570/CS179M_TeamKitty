@@ -29,6 +29,9 @@ jobs_click.set("Select Job")
 #USER STACK: keeps track of who is logged in
 user = []
 
+#LOG FILE
+logging.basicConfig(filename='log.log', format='%(asctime)s %(message)s', encoding='utf-8', level=logging.DEBUG)
+
 def select_container_click(event):
      label_info = event.widget.grid_info()
      if event.widget.cget("text") == "No Ship" or event.widget.cget("text") == "UNUSED" or event.widget.cget("text") == "NAN": 
@@ -77,12 +80,14 @@ def select_txt_file_click():
 def job_submit_click():
      select_txt_file_button.config(state=DISABLED)
      containers_selected = []
+     global unload # used for logging unload movement everytime screen is updated
      if jobs_click.get() == "Unload":
           cells = bay.getCells()
           print(len(cells))
           containers_index = bay.getIndex()
           for i in containers_index:
                containers_selected.append(cells[12*(7-i[0]) + i[1]])
+          unload = containers_selected
           containers_nodes = search(cells, containers_selected)
           #nodes_keys = list(bay.getContainersNodes().keys())
           #updateContainerFrame(containers_nodes[nodes_keys[-1]])
@@ -97,6 +102,8 @@ def job_submit_click():
 #Button press shows the container to move
 def next_move_click():
      updateContainerFrame(bay.getNextContainersNodes())
+     if jobs_click.get() == "Unload" and len(unload):
+          logging.info(f"Unloaded {str(unload.pop(0))}.")
      if len(bay.getContainersNodesKeys()) == 0:
           next_move_button.config(state="disabled")
           jobs_drop_menu.config(state='normal')
@@ -107,14 +114,18 @@ def log(case):
      if case == 1:
           # user is logging in
           if user and len(str(username_entry.get())):
-               print(f"{user.pop()} has logged out.")
+               logging.info(user.pop() + " has logged out")
+               username_entry.delete(0,END)
           if not user and len(str(username_entry.get())):
-               print(f"{username_entry.get()} has logged in.")
+               log_button.config(state="normal")
+               logging.info(username_entry.get() + " has logged in") 
                user.append(username_entry.get()) 
+               username_entry.delete(0,END)
      elif case == 2:
           # user is logging a comment
-          if len(str(log_text_box.get("1.0", "end-1c"))):
-               print(log_text_box.get("1.0", "end-1c"))
+          if len(str(log_text_box.get("1.0", "end-1c"))) and len(user):
+               logging.info(f'{user[0]}: "{log_text_box.get("1.0", "end-1c")}"')
+               log_text_box.delete("1.0","end")
      elif case == 3:
           # atomic movement is logged
           print("logging move") 
@@ -142,6 +153,8 @@ login_button = Button(root, text="Login", command=lambda: log(1))
 log_button = Button(root, text="Post Log", command=lambda: log(2))
 log_text_box = Text(root, width=25, height=5)
 text_label = Label(root, text = "Log")
+
+log_button.config(state="disabled")
 
 username_label.grid(row=2,column=0, pady=10)
 username_entry.grid(row=2,column=1, pady=10)

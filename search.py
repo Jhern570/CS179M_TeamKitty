@@ -29,6 +29,7 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                 total_time += manhattan_dist
                 containers_left -= 1
                 new_node = copy.deepcopy(parent_node)
+                #print(f'{new_node[12 * j + (int(i[1]) - 1)][3]} unloaded')
                 new_node[12 * j + (int(i[1]) - 1)][3] = "UNUSED"
                 new_nodes.clear()
                 new_nodes.append(new_node)
@@ -93,8 +94,7 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                 break
     return new_nodes, containers_, containers_left, total_time
           
-
-def search(cells, containers_selected):
+def search(cells, containers_selected): 
     root_  = copy.deepcopy(cells)
     nodes = []
     nodes.append(root_)
@@ -108,6 +108,7 @@ def search(cells, containers_selected):
     #print(containers_selected)
     while(len(nodes) != 0):
         if containers_left == goal:
+            #print(f"\tcontainers selected: \n {containers_selected[0:]}")
             return nodes_dict
         else:
             new_nodes, containers_selected, containers_left, totel_time = extend_nodes(nodes[0], containers_selected, containers_left, total_time)
@@ -116,7 +117,6 @@ def search(cells, containers_selected):
                 #nodes_dict[key_] = nodes[-1]
                 nodes_dict[key_] = i
                 key_ += 1
-
             nodes.pop(0)
             #print(nodes[0])
 
