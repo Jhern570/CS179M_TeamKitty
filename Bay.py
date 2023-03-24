@@ -1,12 +1,23 @@
-
+import logging
 class Bay:
     def __init__(self):
         self.container_cells = []
         self.containers_index = []
         self.containers_nodes = {}
         self.containers_nodes_keys = []
-    def __det__(self):
+        
+        self.name_new_container = ""
+        self.weight_new_container = ""
+        self.state = 0
         return
+    def restart(self):
+        self.container_cells = []
+        self.containers_index = []
+        self.containers_nodes = {}
+        self.containers_nodes_keys = []
+        
+        self.name_new_container = ""
+        self.weight_new_container = ""
     def parseManifest(self,name):
         manifest_name = name
         #path = "C:\\Users\\julio\\OneDrive\\Desktop\\AI_proj\\ship_cases\\" + manifest_name
@@ -61,3 +72,21 @@ class Bay:
         node = self.containers_nodes[self.containers_nodes_keys[0]]
         self.containers_nodes_keys.pop(0)
         return node
+
+    def setNameNewContainer(self, name):
+        self.name_new_container = name
+    
+    def setWeightNewContainer(self, weight):
+        self.weight_new_container = weight
+    
+    def getNameNewContainer(self):
+        return self.name_new_container
+    
+    def getWeightNewContainer(self):
+        return self.weight_new_container
+    
+    def setBayState(self):
+        self.state = 1
+    
+    def getBayState(self):
+        return self.state
