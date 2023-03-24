@@ -104,6 +104,9 @@ def next_move_click():
      updateContainerFrame(bay.getNextContainersNodes())
      if jobs_click.get() == "Unload" and len(unload):
           logging.info(f"Unloaded {str(unload.pop(0))}.")
+    ## if jobs_click.get() == "Load" and len(unload):
+    ##      logging.info(f"Loaded {str(unload.pop(0))}.")
+    ## if jobs_click.get() == "Balance" and ...
      if len(bay.getContainersNodesKeys()) == 0:
           next_move_button.config(state="disabled")
           jobs_drop_menu.config(state='normal')
