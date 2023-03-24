@@ -110,6 +110,7 @@ def load_another_contaiener_button_click(name, weight):
 
       best_position = search_load(cells)
 
+      logging.info(f"Loading: Loaded container with Name={name} and  Weight={weight} at position {best_position[::-1]}")
       cells[12* best_position[0] + best_position[1]][3] = name
       cells[12* best_position[0] + best_position[1]][2] = weight
       
@@ -176,11 +177,11 @@ def job_submit_click():
                right_weight = calculate_side_weight(0,8,6,12,cells)
                if left_weight == 0 and right_weight == 0:
                     balanced = True
-                    break;
+                    break
                
                balance_mass = int(math.ceil((left_weight + right_weight) / 2))
 
-               if check_if_balance(left_weight, right_weight, balance_mass): #if return True, then ship is balanced
+               if check_if_balance(left_weight, right_weight, balance_mass): #if return True, then ship is balanced 
                     balanced = True
                     break
                deficit = abs(balance_mass - left_weight) if left_weight < right_weight else abs(balance_mass - right_weight)
@@ -222,6 +223,7 @@ def job_submit_click():
                key_pos += len(list(temp_nodes.keys()))
                cells = temp_nodes[key_pos-1]
                nodes.update(temp_nodes)
+               logging.info(f"Balance: Moved {containers_selected}.")
                containers_selected = []
           nodes_keys = list(nodes.keys())
           if len(nodes_keys) == 0:
@@ -245,10 +247,7 @@ def job_submit_click():
 def next_move_click():
      updateContainerFrame(bay.getNextContainersNodes())
      if jobs_click.get() == "Unload" and len(unload):
-          logging.info(f"Unloaded {str(unload.pop(0))}.")
-    ## if jobs_click.get() == "Load" and len(unload):
-    ##      logging.info(f"Loaded {str(unload.pop(0))}.")
-    ## if jobs_click.get() == "Balance" and ...
+          logging.info(f"Unloading: Unloaded {str(unload.pop(0))}.")
      if len(bay.getContainersNodesKeys()) == 0:
           next_move_button.config(state="disabled")
           jobs_drop_menu.config(state='normal')
@@ -290,7 +289,7 @@ job_submit_button.place(x=width_root-int(width_root/6), y=240)
 
 next_move_button = Button(root, text="Next Move", command=next_move_click)
 next_move_button.config(state="disabled")
-next_move_button.place(x=int(width/2), y=height - 200)
+next_move_button.place(x=int(width_root/2), y=height_root - 200)
 
 # BUTTONS FOR LOGGING INFORMATION
 username_label = Label(root, text="Name:")

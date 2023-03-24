@@ -176,7 +176,6 @@ def possible_containers_to_move(cells, target):
             # Add num to each solution found
             for sub_list in sub_result:
                 result.append(cell + sub_list)
-    
     # Return all solutions found
     return result
 
