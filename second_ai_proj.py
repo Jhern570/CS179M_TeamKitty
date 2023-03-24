@@ -21,8 +21,11 @@ frame_height = height_root - 400
 cell_width = 7
 cell_heigth = 3
 
+
 containers = []
 bay = Bay.Bay()
+
+
 global containers_frame, cells,name_new_container, weight_new_container, name_text, weight_text
 name_new_container = ""
 weight_new_container =""
@@ -30,6 +33,16 @@ weight_new_container =""
 containers_frame = Frame(root, width=frame_width, height=frame_height)
 containers_frame.pack(expand="true")
 containers_frame.place(anchor='center', bordermode=INSIDE, relx=0.5, rely=0.5)
+
+#-----------------NEW-----------------------------
+title_label = Label (root,text = "Long Beach Keogh", font=("Arial", 35))
+title_label.pack(padx = (0, 1200), pady = (20,0))
+message_label = Label(root, text="Welcome", font=("Arial", 25))
+message_label.pack(padx = (30, 400), pady = (200, 0))
+container_descrip = Text(root, width = 20, height = 10)
+container_descrip.pack(padx=(1250,0), pady = (10, 0))
+#---------------------------------------------------------------
+
 
 #DROP OF MENU FOR TYPE OF JOB OPTIONS
 jobs = ["Load", "Unload", "Balance Ship"]
@@ -48,18 +61,42 @@ def select_container_click(event):
      bay.appendIndex(container_index)
      containers[12*x+y].config(bg="green")
 
+def select_container_hover(event):
+     container_descrip.delete("1.0", "end")
+     label_info = event.widget.grid_info()
+     if event.widget.cget("text") == "No Ship" or event.widget.cget("text") == "UNUSED" or event.widget.cget("text") == "NAN": 
+          return
+     cells = bay.getCells()
+     weight = cells[12 * (7 - label_info['row']) + label_info['column']][2]
+     name = event.widget.cget("text")
+     descript = "Name: " + name + "\n" + "Weight: " + weight + "\nRow: " + str(7 - label_info['row'] + 1) + "\nColumn: " + str(label_info['column'] +1)
+     container_descrip.insert(END, descript)
+
 for i in range(8):
         for j in range(12):
             #pos = str(i) + ", " + str(j)                         10         5
             label = Label(containers_frame, text="No Ship", width=cell_width, height=cell_heigth,borderwidth=1, relief="solid")
             label.grid(row=i, column=j)
             label.bind('<Button-1>', select_container_click)
+            label.bind('<Enter>', select_container_hover)
             containers.append(label)
 
 #UPDATE FRAME OF CONTAINERS
 def updateContainerFrame(cells):
     a = 0
     b = 0
+    
+    new_x = -1
+    new_y = -1
+    if bay.getFlag() == 1:
+         new_x = bay.getNewPositions()[0]
+         new_y = bay.getNewPositions()[1]
+         if new_x == 9:
+              message_label.config(text="Move [" + str(bay.getContainersToMove()[0]) + ", " + 
+                              str(bay.getContainersToMove()[1]) + "] to truck")
+         else:
+              message_label.config(text="Move [" + str(bay.getContainersToMove()[0]) + ", " + 
+                              str(bay.getContainersToMove()[1]) + "] to position [" + str(new_y + 1) + ", " + str(new_x + 1) + "]") 
     for i in range(7,-1,-1):
          for j in range(0,12):
             containers[12*a+b].config(text=cells[12*i+j][3])
@@ -69,10 +106,14 @@ def updateContainerFrame(cells):
                  else:
                       containers[12*a+b].config(bg="red")
             else:
-                containers[12*a+b].config(bg="SystemButtonFace")
+                if bay.getFlag() == 1 and i == new_x and j == new_y:
+                      containers[12*a+b].config(bg="blue")
+                else:
+                     containers[12*a+b].config(bg="SystemButtonFace")
             b += 1 
          a+=1
          b = 0
+
 #CLICK EVENT FOR SELECTING MANAFEST FILE
 def select_txt_file_click():
     if bay.getBayState() == 1:
@@ -86,6 +127,7 @@ def select_txt_file_click():
 
     
 def load_another_contaiener_button_click(name, weight):
+       
       if name == "" or weight == "":
             messagebox.showinfo(title=None, message="Name or Weight is Empty")
             return   
@@ -97,6 +139,12 @@ def load_another_contaiener_button_click(name, weight):
       if weight_int < 0 or len(weight) > 5:
            messagebox.showinfo(title=None, message="Enter correct weight")
            return
+      
+      question = "Is the name and weight correct?\n" + "Name: " + name + "\n" + "Weight: " + weight
+      msg_ans = messagebox.askquestion(title=None, message=question)
+      if msg_ans == "no":
+          
+          return
       weight = "0" * (5-len(weight)) + weight
 
       cells = bay.getCells()
@@ -141,13 +189,19 @@ def job_submit_click():
           containers_index = bay.getIndex()
           for i in containers_index:
                containers_selected.append(cells[12*(7-i[0]) + i[1]])
-          containers_nodes = search(cells, containers_selected)
+          containers_nodes, new_positions, containers_to_move = search(cells, containers_selected)
           #nodes_keys = list(bay.getContainersNodes().keys())
           #updateContainerFrame(containers_nodes[nodes_keys[-1]])
+          print("containers: " + str(len(containers_nodes)))
+          print("positions: " + str(len(new_positions)))
           bay.setContainersNodes(containers_nodes)
+          bay.setNewPositions(new_positions)
+          bay.setContainersToMove(containers_to_move)
           node_keys = list(bay.getContainersNodes().keys())
           bay.setContainersNodesKeys(node_keys)
+          
           next_move_button.config(state="normal")
+     
      elif jobs_click.get() == "Load":
           #open load window
           open_new_load_window()
@@ -236,6 +290,7 @@ def job_submit_click():
 
 #Button press shows the container to move
 def next_move_click():
+     bay.setFlag(1)
      updateContainerFrame(bay.getNextContainersNodes())
      if len(bay.getContainersNodesKeys()) == 0:
           next_move_button.config(state="disabled")
@@ -243,8 +298,9 @@ def next_move_click():
           job_submit_button.config(state='normal')
           select_txt_file_button.config(state=NORMAL)
           bay.restart()
+          message_label.config(text="You have Successfully moved all containers")
 
-
+          
 select_txt_file_button = Button(root, text="Select Manifest", padx=8, pady=12, command=select_txt_file_click)
 select_txt_file_button.place(x=width_root-int(width_root/6), y=height_root-int(height_root/5))
 

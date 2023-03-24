@@ -1,23 +1,41 @@
 
+import time
+import copy
+
 class Bay:
     def __init__(self):
         self.container_cells = []
         self.containers_index = []
         self.containers_nodes = {}
         self.containers_nodes_keys = []
-        
+        self.previousNode = []
+        self.currentNode = []
         self.name_new_container = ""
         self.weight_new_container = ""
         self.state = 0
+        self.seconds = 0
+        self.count = 0
+        self.flag = 0
+        self.new_positions = {}
+        self.containers_to_move = {}
+        self.containers_move = []
+        self.new_pos = []
         return
     def restart(self):
         self.container_cells = []
         self.containers_index = []
         self.containers_nodes = {}
+        self.new_positions = {}
+        self.containers_to_move = {}
         self.containers_nodes_keys = []
-        
+        self.previousNode = []
+        self.currentNode = []
         self.name_new_container = ""
         self.weight_new_container = ""
+        self.new_pos = []
+        self.containers_move = []
+        self.flag = 0
+        self.count = 0
     def parseManifest(self,name):
         manifest_name = name
         #path = "C:\\Users\\julio\\OneDrive\\Desktop\\AI_proj\\ship_cases\\" + manifest_name
@@ -70,6 +88,10 @@ class Bay:
     
     def getNextContainersNodes(self):
         node = self.containers_nodes[self.containers_nodes_keys[0]]
+        if len(self.containers_nodes_keys) != 1:
+            self.new_pos = self.new_positions[self.containers_nodes_keys[1]]
+            self.containers_move = self.containers_to_move[self.containers_nodes_keys[1]]
+        self.count += 1
         self.containers_nodes_keys.pop(0)
         return node
 
@@ -90,3 +112,46 @@ class Bay:
     
     def getBayState(self):
         return self.state
+    
+    def getPreviousNode(self):
+        return self.previouNode
+    
+    def setPreviousNode(self, cell):
+        # if len(self.containers_nodes) > 1:
+        #     self.previousNode = self.containers_nodes[self.containers_nodes_keys[1]]
+        self.previousNode = cell
+
+    def setCurrentNode(self, cell):
+        self.currentNode = cell
+
+    def getCurrentNode(self):
+        return self.currentNode
+    
+    def setTime(self):
+        self.seconds = time.time()
+    
+    def getTime(self):
+        return self.seconds
+
+    def getCount(self):
+        return self.count
+
+    def setFlag(self, n):
+        self.flag = n
+
+    def getFlag(self):
+        return self.flag
+    
+    def setNewPositions(self, pos):
+        self.new_positions = pos
+    
+    def setContainersToMove(self, containers):
+        self.containers_to_move = containers
+    
+    def getNewPositions(self):
+        return self.new_pos
+    
+    def getContainersToMove(self):
+        print("TO MOVE ")  
+        print(self.containers_move)
+        return self.containers_move

@@ -15,10 +15,11 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
     containers_ = containers_selected.copy()
     count = 0
     unsused_flag = 0;
-    
+    new_position_list = []
+    container_to_move_list = []
     for i in containers_selected:
         if flag == 1:
-            return new_nodes, containers_selected, containers_left, total_time
+            return new_nodes, containers_selected, containers_left, new_position_list, container_to_move_list, total_time
         for j in range(7,-1,-1):
             if parent_node[12 * j + (int(i[1]) - 1)][3] == "UNUSED" or parent_node[12 * j + (int(i[1]) - 1)][3] == "NAN":
                 continue
@@ -29,7 +30,11 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                 new_node = copy.deepcopy(parent_node)
                 new_node[12 * j + (int(i[1]) - 1)][3] = "UNUSED"
                 new_nodes.clear()
+                new_position_list.clear()
+                container_to_move_list.clear()
                 new_nodes.append(new_node)
+                new_position_list.append([9,9])
+                container_to_move_list.append([(int(i[1])), j + 1])
                 containers_.pop(count)
                 flag = 1
                 break # NEED TO FIGURE OUT HOW TO BREAK OUTTER LOOP AS WELL
@@ -48,10 +53,14 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                             if min_dist == 0 or min_dist > manhattan_dist:
                                 
                                 new_nodes.clear()
+                                new_position_list.clear()
+                                container_to_move_list.clear()
                                 min_dist = manhattan_dist
                                 node_[12 * row + col][3] = node_[12 * j + (int(i[1]) - 1)][3]
                                 node_[12 * j + (int(i[1]) -1)][3] = "UNUSED"
                                 new_nodes.append(node_)
+                                new_position_list.append([row, col])
+                                container_to_move_list.append([(int(i[1])), j + 1])
                                 flag = 1
                                 break
                     if flag == 1:
@@ -75,10 +84,14 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                             if min_dist == 0 or min_dist >= manhattan_dist:
                                 
                                 new_nodes.clear()
+                                new_position_list.clear()
+                                container_to_move_list.clear()
                                 min_dist = manhattan_dist
                                 node_[12 * row + col][3] = node_[12 * j + (int(i[1]) - 1)][3]
                                 node_[12 * j + (int(i[1]) -1)][3] = "UNUSED"
                                 new_nodes.append(node_)
+                                new_position_list.append([row, col])
+                                container_to_move_list.append([(int(i[1])), j + 1])
                                 flag = 1
                                 break
                     if flag == 1:
@@ -89,12 +102,15 @@ def extend_nodes(parent_node, containers_selected, containers_left, total_time):
                          additional_spaces = 9 - int(i[0])
                 count += 1
                 break
-    return new_nodes, containers_, containers_left, total_time
+    return new_nodes, containers_, containers_left, new_position_list, container_to_move_list,  total_time
           
 
 def search(cells, containers_selected):
     root_  = copy.deepcopy(cells)
     nodes = []
+    new_positions = []
+    new_positions_dict = {}
+    container_to_move_dict = {}
     nodes.append(root_)
     goal = 0
     containers_left = len(containers_selected)
@@ -102,17 +118,22 @@ def search(cells, containers_selected):
     key_ = 0
     nodes_dict = {}
     nodes_dict[key_] = nodes[0]
+    new_positions_dict[key_] = [-1,-1]
+    container_to_move_dict[key_] = [-1,-1]
     key_ += 1
     #print(containers_selected)
     while(len(nodes) != 0):
         if containers_left == goal:
-            return nodes_dict
+            return nodes_dict, new_positions_dict, container_to_move_dict
         else:
-            new_nodes, containers_selected, containers_left, totel_time = extend_nodes(nodes[0], containers_selected, containers_left, total_time)
-            for i in new_nodes: 
+            new_nodes, containers_selected, containers_left, new_positions, container_to_move, totel_time = extend_nodes(nodes[0], containers_selected, containers_left, total_time)
+            for num, i in enumerate(new_nodes): 
                 nodes.append(i)
                 #nodes_dict[key_] = nodes[-1]
                 nodes_dict[key_] = i
+                print(new_positions[num])
+                new_positions_dict[key_] = new_positions[num]
+                container_to_move_dict[key_] = container_to_move[num]
                 key_ += 1
 
             nodes.pop(0)
