@@ -6,6 +6,7 @@ or balance the ship in the least time possible. The software must do one job per
 The manifests consists of information for every single container above the ship. The bay can be picture as an 8 by 12 grid, consisting of 96 containers
 in total. The bay can have from 0 to 96 containers aboard the ship. The ship may also have spots at the bottom that may not be accessible for containers. 
 Here is a little example of how the bay may look like.
+
 ![s3](https://user-images.githubusercontent.com/86257457/227685956-f90a349f-be18-4466-8ef2-511876b2df73.jpg)
 
 Knowing all this, we created an idea on how the UI may look. Considering that Mr.Keogh is only asking for somethin simple that his workers can easily use
