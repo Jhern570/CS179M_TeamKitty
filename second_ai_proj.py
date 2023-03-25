@@ -119,9 +119,9 @@ def updateContainerFrame(cells):
     new_y = -1
     load_x = -1
     load_y = -1
-    if bay.getFlag() == 1 and bay.getLoadFlag() == 0:
-         new_x = bay.getNewLoadPositions()[0]
-         new_y = bay.getNewLoadPositions()[1]
+    if bay.getFlag() == 1 and bay.getLoadFlag() == 0 and bay.getBalanceFlag() == 0:
+         new_x = bay.getNewPositions()[0]
+         new_y = bay.getNewPositions()[1]
          
          if new_x == 9:
               message_label.config(text="Move [" + str(bay.getContainersToMove()[0]) + ", " + 
@@ -165,6 +165,7 @@ def updateContainerFrame(cells):
      
 #CLICK EVENT FOR SELECTING MANAFEST FILE
 def select_txt_file_click():
+    message_label.config(text = "SELECT MANIFEST")
     if bay.getBayState() == 1:
          bay.restart()
     desktop_dir = "C:\\Users\\" + os.environ.get('USERNAME') + "\\Desktop"
@@ -341,6 +342,7 @@ def job_submit_click():
                return
           bay.setContainersNodes(nodes)
           bay.setContainersNodesKeys(nodes_keys)
+          bay.setBalanceFlag(1)
           next_move_button.config(state = "normal")
           return
 

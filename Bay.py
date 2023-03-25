@@ -18,6 +18,7 @@ class Bay:
         self.count = 0
         self.flag = 0
         self.loadFlag = 0
+        self.balanceFlag = 0
         self.new_positions = {}
         self.containers_to_move = {}
         self.containers_move = []
@@ -40,6 +41,7 @@ class Bay:
         self.new_load_positions = []
         self.flag = 0
         self.loadFlag = 0
+        self.balanceFlaf = 0
         self.count = 0
     def parseManifest(self,name):
         manifest_name = name
@@ -166,7 +168,7 @@ class Bay:
     
     def getNextContainersNodes(self):
         node = self.containers_nodes[self.containers_nodes_keys[0]]
-        if len(self.containers_nodes_keys) != 1 and self.loadFlag == 0:
+        if len(self.containers_nodes_keys) != 1 and self.loadFlag == 0 and self.balanceFlag == 0:
             self.new_pos = self.new_positions[self.containers_nodes_keys[1]]
             self.containers_move = self.containers_to_move[self.containers_nodes_keys[1]]
         self.count += 1
@@ -245,3 +247,8 @@ class Bay:
 
     def getLoadFlag(self):
         return self.loadFlag
+    
+    def setBalanceFlag(self, b):
+        self.balanceFlag = b
+    def getBalanceFlag(self):
+        return self.balanceFlag
