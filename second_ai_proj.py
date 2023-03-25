@@ -5,6 +5,7 @@ import os
 import Bay
 import time
 import math
+import logging
 from search import *
 
 
@@ -31,23 +32,51 @@ name_new_container = ""
 weight_new_container =""
 #containers_frame = Frame(root, width=1200, height=800)
 containers_frame = Frame(root, width=frame_width, height=frame_height)
-containers_frame.pack(expand="true")
+containers_frame.pack(expand="true", padx = 5)
 containers_frame.place(anchor='center', bordermode=INSIDE, relx=0.5, rely=0.5)
-
-#-----------------NEW-----------------------------
-title_label = Label (root,text = "Long Beach Keogh", font=("Arial", 35))
-title_label.pack(padx = (0, 1200), pady = (20,0))
-message_label = Label(root, text="Welcome", font=("Arial", 25))
-message_label.pack(padx = (30, 400), pady = (200, 0))
-container_descrip = Text(root, width = 20, height = 10)
-container_descrip.pack(padx=(1250,0), pady = (10, 0))
-#---------------------------------------------------------------
 
 
 #DROP OF MENU FOR TYPE OF JOB OPTIONS
 jobs = ["Load", "Unload", "Balance Ship"]
 jobs_click = StringVar()
 jobs_click.set("Select Job")
+
+
+#-----------------Title-----------------------------
+title_label = Label (root,text = "Long Beach Keogh", font=("Arial", 35))
+title_label.pack(padx = (0, 1200), pady = (20,0))
+message_label = Label(root, text="Welcome", font=("Arial", 25))
+message_label.pack(padx = (0, 100), pady = (200, 0))
+container_descrip = Text(root, width = 20, height = 10)
+container_descrip.pack(padx=(1250,0), pady = (10, 0))
+#---------------------------------------------------------------
+
+#USER STACK: keeps track of who is logged in
+user = []
+
+#LOG FILE
+logging.basicConfig(filename='log.log', format='%(asctime)s %(message)s', encoding='utf-8', level=logging.DEBUG)
+#################log##########################
+log_frame = Frame(root, width = 300, height= 400)
+log_frame.pack(padx= (50, 1220), pady = (0,0))
+
+
+username_label = Label(log_frame, text="Name:")
+username_entry = Entry(log_frame)
+login_button = Button(log_frame, text="Login", command=lambda: log(1))
+log_button = Button(log_frame, text="Post Log", command=lambda: log(2))
+log_text_box = Text(log_frame, width=25, height=5)
+text_label = Label(log_frame, text = "Log")
+
+log_button.config(state="disabled")
+
+username_label.grid(row=2,column=0, pady=10)
+username_entry.grid(row=2,column=1, pady=10)
+login_button.grid(row=3,column=0, columnspan=1, pady=10)
+log_button.grid(row=3,column=1, columnspan=2, padx=25 ,pady=10)
+text_label.grid(row=0, column=0, columnspan=2, padx=20)
+log_text_box.grid(row=1,column=0, columnspan=2, padx=20)
+
 
 
 def select_container_click(event):
@@ -88,15 +117,30 @@ def updateContainerFrame(cells):
     
     new_x = -1
     new_y = -1
-    if bay.getFlag() == 1:
-         new_x = bay.getNewPositions()[0]
-         new_y = bay.getNewPositions()[1]
+    load_x = -1
+    load_y = -1
+    if bay.getFlag() == 1 and bay.getLoadFlag() == 0:
+         new_x = bay.getNewLoadPositions()[0]
+         new_y = bay.getNewLoadPositions()[1]
+         
          if new_x == 9:
               message_label.config(text="Move [" + str(bay.getContainersToMove()[0]) + ", " + 
                               str(bay.getContainersToMove()[1]) + "] to truck")
          else:
               message_label.config(text="Move [" + str(bay.getContainersToMove()[0]) + ", " + 
                               str(bay.getContainersToMove()[1]) + "] to position [" + str(new_y + 1) + ", " + str(new_x + 1) + "]") 
+              
+    if bay.getFlag() == 1 and bay.getLoadFlag() == 1:
+         pos = bay.getNewLoadPositions()
+         load_x = pos[0]
+         load_y = pos[1]
+         print(load_x)
+         print(load_y)
+         if load_x != -1:
+              message_label.config(text = "Move new container to position [" + str(load_x + 1) + ", " + str(load_y + 1) + "]")
+         else:
+              message_label.config(text = "You have successfully placed new container into the ship")
+              bay.setLoadFlag(0)
     for i in range(7,-1,-1):
          for j in range(0,12):
             containers[12*a+b].config(text=cells[12*i+j][3])
@@ -108,20 +152,33 @@ def updateContainerFrame(cells):
             else:
                 if bay.getFlag() == 1 and i == new_x and j == new_y:
                       containers[12*a+b].config(bg="blue")
+                elif bay.getLoadFlag() == 1 and load_x == i and load_y == j:
+                    containers[12*a+b].config(bg="blue")
                 else:
                      containers[12*a+b].config(bg="SystemButtonFace")
             b += 1 
          a+=1
          b = 0
-
+    if len(bay.getContainersNodesKeys()) == 0 and bay.getFlag() == 1:
+         bay.createOutputFile(cells, containers_frame.filename)
+         
+     
 #CLICK EVENT FOR SELECTING MANAFEST FILE
 def select_txt_file_click():
     if bay.getBayState() == 1:
          bay.restart()
-    desktop_dir = "C:\\Users\\" + os.environ.get('USERNAME') + "\\OneDrive\\Desktop"
+    desktop_dir = "C:\\Users\\" + os.environ.get('USERNAME') + "\\Desktop"
+
     containers_frame.filename = filedialog.askopenfilename(initialdir=desktop_dir, title="Select A File", filetypes=(("Text documents", "*.txt"),))
+#     check_if_manifest = containers_frame.filename[len(containers_frame.filename) - len("manifest.txt"):]
+#     if check_if_manifest != "manifest.txt":
+#          messagebox.showinfo(title=None, message="File is not a manifest")    
+#          return
     cells = bay.parseManifest(containers_frame.filename)
-    updateContainerFrame(cells)
+    if cells == -1:
+         messagebox.showinfo(title=None, message="File is not a manifest")    
+         return
+    updateContainerFrame(cells)   
     bay.setBayState()
     jobs_drop_menu.config(state="normal")
 
@@ -149,17 +206,21 @@ def load_another_contaiener_button_click(name, weight):
 
       cells = bay.getCells()
       nodes = {}
+      new_positions = []
       nodes[0] = cells
 
       best_position = search_load(cells)
+      new_positions.append(best_position)
+      new_positions.append([-1,-1])
 
       cells[12* best_position[0] + best_position[1]][3] = name
       cells[12* best_position[0] + best_position[1]][2] = weight
-      
       nodes[1] = cells
       nodes_keys = [0,1]
       bay.setContainersNodes(nodes)
       bay.setContainersNodesKeys(nodes_keys)
+      bay.setNewLoadPositions(new_positions)
+      bay.setLoadFlag(1)
       next_move_button.config(state="normal")      
 
 def open_new_load_window():
@@ -284,8 +345,8 @@ def job_submit_click():
           return
 
 
-     elif jobs_drop_menu.cget() == "Select Job":
-        print("Select job")
+     else:
+        select_txt_file_button.config(state= "normal")
 
 
 #Button press shows the container to move
@@ -300,6 +361,27 @@ def next_move_click():
           bay.restart()
           message_label.config(text="You have Successfully moved all containers")
 
+
+
+def log(case):
+     if case == 1:
+          # user is logging in
+          if user and len(str(username_entry.get())):
+               logging.info(user.pop() + " has logged out")
+               username_entry.delete(0,END)
+          if not user and len(str(username_entry.get())):
+               log_button.config(state="normal")
+               logging.info(username_entry.get() + " has logged in") 
+               user.append(username_entry.get()) 
+               username_entry.delete(0,END)
+     elif case == 2:
+          # user is logging a comment
+          if len(str(log_text_box.get("1.0", "end-1c"))) and len(user):
+               logging.info(f'{user[0]}: "{log_text_box.get("1.0", "end-1c")}"')
+               log_text_box.delete("1.0","end")
+     elif case == 3:
+          # atomic movement is logged
+          print("logging move") 
           
 select_txt_file_button = Button(root, text="Select Manifest", padx=8, pady=12, command=select_txt_file_click)
 select_txt_file_button.place(x=width_root-int(width_root/6), y=height_root-int(height_root/5))
@@ -316,4 +398,11 @@ job_submit_button.place(x=width_root-int(width_root/6), y=240)
 next_move_button = Button(root, text="Next Move", command=next_move_click)
 next_move_button.config(state="disabled")
 next_move_button.place(x=int(width_root/2), y=height_root - 200)
+
+
+
+
+
+
+
 root.mainloop()

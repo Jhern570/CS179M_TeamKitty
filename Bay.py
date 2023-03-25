@@ -1,6 +1,7 @@
 
 import time
 import copy
+import os
 
 class Bay:
     def __init__(self):
@@ -16,10 +17,12 @@ class Bay:
         self.seconds = 0
         self.count = 0
         self.flag = 0
+        self.loadFlag = 0
         self.new_positions = {}
         self.containers_to_move = {}
         self.containers_move = []
         self.new_pos = []
+        self.new_load_positions = []
         return
     def restart(self):
         self.container_cells = []
@@ -34,7 +37,9 @@ class Bay:
         self.weight_new_container = ""
         self.new_pos = []
         self.containers_move = []
+        self.new_load_positions = []
         self.flag = 0
+        self.loadFlag = 0
         self.count = 0
     def parseManifest(self,name):
         manifest_name = name
@@ -44,11 +49,35 @@ class Bay:
 
         Lines = manifest_file.readlines()
         cells = []
+        x = 1
+        y = 1
+        if len(Lines) == 0:
+            return -1
         for i in Lines:
             container = []
             posx = i[1:3]
+            try:
+                w = int(posx)
+            except:
+                return -1
+            if int(posx) > 8 or int(posx) <= 0 or int(posx) != x:
+                return -1
             posy = i[4:6]
+            try:
+                w = int(posy)
+            except:
+                return -1
+            if int(posy) > 12 or int(posy) <= 0 or int(posy) != y:
+                return -1
+            y+= 1
+            if y == 13:
+                x += 1
+                y = 1
             weight = i[10:15]
+            try:
+                w = int(weight)
+            except:
+                return -1
             if int(posx)*int(posy) == len(Lines):
                 descrip = i[18:]
             else:
@@ -59,7 +88,56 @@ class Bay:
             container.append(descrip)
             cells.append(container)
         self.container_cells = cells
+        if len(self.container_cells) > 96:
+            return -1
         return cells
+    
+    def createOutputFile(self, node, name):
+        old_name = os.path.basename(name)
+        new_name = old_name[:len(old_name) - len(".txt")] + "OUTBOUND.txt"
+        old_path = name
+        new_path = "C:\\Users\\" +  os.environ.get('USERNAME') + "\\Desktop\\" + new_name 
+        
+        old_path = name
+
+        read_file = ""
+        output_file = ""
+        # with open(old_path, 'w') as old_file: 
+        #     open(old_file, 'w').close()
+        flag = 0
+        try:
+            new_file = open(new_path, 'w')
+            flag = 1
+        except FileNotFoundError: 
+            new_path = ""
+        try:
+            if flag == 0:
+                new_path = "C:\\Users\\" +  os.environ.get('USERNAME') + "\\OneDrive\\Desktop\\" + new_name
+                new_file = open(new_path, 'w')
+                flag = 1 
+        except FileNotFoundError:
+            new_path = ""
+        try:
+            if flag == 0:
+                new_path = "C:\\Users\\" +  os.environ.get('USERNAME') + "\\OneDrive\\Desktop\\" + new_name
+                new_path = open(new_path, 'w')
+                flag = 1
+        except:
+            new_path = new_name
+
+        for num, i in enumerate(node):
+            if num == len(node) - 1:
+                line = "[" + i[0] + "," + i[1] + "], {" + i[2] + "}" + ", " + i[3]
+            else:
+                line = "[" + i[0] + "," + i[1] + "], {" + i[2] + "}" + ", " + i[3] + "\n"
+            new_file.write(line)
+        # output_file.close()
+        # path_dir = path[:len(path) - len(old_name)]
+        # os.rename(path, path_dir + new_name)
+        # print(path)
+        os.remove(old_path)
+        new_file.close()
+        return
 
     def getCells(self):
         return self.container_cells
@@ -88,7 +166,7 @@ class Bay:
     
     def getNextContainersNodes(self):
         node = self.containers_nodes[self.containers_nodes_keys[0]]
-        if len(self.containers_nodes_keys) != 1:
+        if len(self.containers_nodes_keys) != 1 and self.loadFlag == 0:
             self.new_pos = self.new_positions[self.containers_nodes_keys[1]]
             self.containers_move = self.containers_to_move[self.containers_nodes_keys[1]]
         self.count += 1
@@ -151,7 +229,19 @@ class Bay:
     def getNewPositions(self):
         return self.new_pos
     
+    def setNewLoadPositions(self, pos):
+        self.new_load_positions = pos
+    
+    def getNewLoadPositions(self):
+        new_pos = self.new_load_positions[0]
+        self.new_load_positions.pop(0)
+        return new_pos
+    
     def getContainersToMove(self):
-        print("TO MOVE ")  
-        print(self.containers_move)
         return self.containers_move
+    
+    def setLoadFlag(self, b):
+        self.loadFlag = b
+
+    def getLoadFlag(self):
+        return self.loadFlag
